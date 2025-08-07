@@ -5,7 +5,7 @@ class AppStrings {
       "management solution, providing instant notifications, "
       "digital & paperless operation, and powerful analytics.";
   static const String loginSignup = "Login/Sign Up";
-  static const String getStarted = "Get Started For Free";
+  static const String getStarted = "Get Started";
   static const String howItWorksTitle = "How EzyValet Works";
   static const String featuresDescription =
       "EzyValet offers a range of features designed to enhance the valet parking experience for both guests and staff.";

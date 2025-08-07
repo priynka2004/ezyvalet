@@ -1,0 +1,188 @@
+import 'package:ezyvalet/authintiction/EditProfileScree.dart';
+import 'package:ezyvalet/authintiction/ProfileScreen.dart';
+import 'package:ezyvalet/constants/app_colors.dart';
+import 'package:ezyvalet/screens/AnalyticsScreen.dart';
+import 'package:ezyvalet/screens/StaffScreen.dart';
+import 'package:flutter/material.dart';
+
+class MyDrawer extends StatelessWidget {
+  const MyDrawer({super.key});
+  final Color accent = AppColors.highlight;
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Drawer header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [accent, accent.withOpacity(0.9)],
+                ),
+                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+              ),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                    ),
+                    child: const CircleAvatar(
+                      radius: 28,
+                      backgroundImage: AssetImage('assets/images/images.png'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          'Priynka Sheoran',
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'priyanka@email.com',
+                          style: TextStyle(color: Colors.white70, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                    ),
+                    icon: const Icon(Icons.edit, color: Colors.white),
+                  )
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            // Drawer items
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  _drawerItem(
+                    context,
+                    text: 'Staff',
+                    icon: Icons.people,
+                    onTap: () => _navigate(context, const StaffScreen()),
+                  ),
+                  _drawerItem(
+                    context,
+                    text: 'Analytics',
+                    icon: Icons.analytics_outlined,
+                    onTap: () => _navigate(context, const AnalyticsScreen()),
+                  ),
+                  const Divider(),
+
+                  _sectionLabel('General'),
+                  _placeholderItem(context, 'About Us', Icons.info_outline),
+                  _placeholderItem(context, 'Terms & Conditions', Icons.article_outlined),
+                  _placeholderItem(context, 'Refund Policy', Icons.currency_exchange),
+                  _placeholderItem(context, 'Privacy Policy', Icons.privacy_tip_outlined),
+                  const Divider(),
+
+                  _sectionLabel('Support'),
+                  _placeholderItem(context, 'Contact Us', Icons.contact_mail_outlined),
+                ],
+              ),
+            ),
+
+            // Footer
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12),
+              child: Column(
+                children: [
+                  const Divider(),
+                  Row(
+                    children: [
+                      const Icon(Icons.info_outline, size: 18, color: Colors.grey),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text('App version 1.0.0', style: TextStyle(color: Colors.black54)),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          // TODO: implement sign out
+                        },
+                        child: const Text('Sign out', style: TextStyle(color: Colors.red)),
+                      )
+                    ],
+                  ),
+                ],
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Navigation function
+  void _navigate(BuildContext context, Widget screen) {
+    Navigator.pop(context);
+    Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+  }
+
+  Widget _drawerItem(
+      BuildContext context, {
+        required String text,
+        required IconData icon,
+        required VoidCallback onTap,
+      }) {
+    return Column(
+      children: [
+        ListTile(
+          title: Text(
+            text,
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+          ),
+          trailing: Icon(icon, color: accent),
+          onTap: onTap,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      //  const Divider(indent: 20, endIndent: 20, height: 1),
+      ],
+    );
+  }
+
+  Widget _sectionLabel(String label) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 0, 6),
+      child: Text(
+        label.toUpperCase(),
+        style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+
+  Widget _placeholderItem(BuildContext context, String title, IconData icon) {
+    return _drawerItem(
+      context,
+      text: title,
+      icon: icon,
+      onTap: () => _navigate(
+        context,
+        Scaffold(
+          appBar: AppBar(
+            title: Text(title),
+            backgroundColor: AppColors.highlight,
+          ),
+          body: Center(child: Text('$title Placeholder')),
+        ),
+      ),
+    );
+  }
+}

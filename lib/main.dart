@@ -1,5 +1,5 @@
-import 'package:ezyvalet/screens/HotelBookingScreen.dart';
-import 'package:ezyvalet/screens/main_navigation_screen.dart';
+import 'package:ezyvalet/screens/ezy_valet_screen.dart';
+import 'package:ezyvalet/unused_screen/main_navigation_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() {

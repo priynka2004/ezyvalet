@@ -1,5 +1,9 @@
+import 'package:ezyvalet/constants/app_colors.dart';
 import 'package:ezyvalet/constants/app_text_styles.dart';
+import 'package:ezyvalet/screens/my_drawer.dart';
 import 'package:flutter/material.dart';
+
+import 'home_navi_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -8,20 +12,49 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      drawer: MyDrawer(),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        leading: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: CircleAvatar(
-            backgroundImage: AssetImage('assets/images/images.png'),
+        // leading: Padding(
+        //   padding: const EdgeInsets.all(8.0),
+        //   child: CircleAvatar(
+        //     backgroundImage: AssetImage('assets/images/images.png'),
+        //   ),
+        // ),
+        leading: Builder(
+          builder: (context) {
+            return InkWell(
+              onTap: () {
+                Scaffold.of(context).openDrawer();
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(6.0),
+                child: Icon(
+                  Icons.dehaze,
+                  color: AppColors.highlight,
+                  size: 24,
+                ),
+              ),
+            );
+          },
+        ),
+
+        title: Text('Dashboard', style: AppTextStyles.sectionTitle),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return HomeNaviScreen();
+              }));
+            },
+            icon: Icon(
+              Icons.home,
+              color: AppColors.highlight,
+            ),
           ),
-        ),
-        title: Text(
-          'Dashboard',
-          style: AppTextStyles.sectionTitle
-        ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -35,7 +68,6 @@ class DashboardScreen extends StatelessWidget {
                 Expanded(child: _infoCard("Average Retrieval Time", "5 min")),
               ],
             ),
-
             const SizedBox(height: 12),
             _infoCard("Customer Satisfaction", "95%", isFullWidth: true),
             const SizedBox(height: 24),
@@ -112,7 +144,8 @@ class DashboardScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(title,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 2),
                 Text(subtitle, style: AppTextStyles.hintStyle),
               ],
