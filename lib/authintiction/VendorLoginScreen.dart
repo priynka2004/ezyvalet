@@ -1,8 +1,13 @@
+import 'package:ezyvalet/authintiction/ForgetPasswordScreen.dart';
 import 'package:ezyvalet/authintiction/VendorSignUpScreen.dart';
+import 'package:ezyvalet/authintiction/provider/forget_password_provider.dart';
+import 'package:ezyvalet/authintiction/provider/login_provider.dart';
+import 'package:ezyvalet/authintiction/service/login_service.dart';
 import 'package:ezyvalet/screens/HomePage.dart';
 import 'package:ezyvalet/screens/NewValetEntryScreen.dart';
 import 'package:ezyvalet/unused_screen/main_navigation_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_strings.dart';
 import '../constants/app_text_styles.dart';
@@ -17,19 +22,30 @@ class VendorLoginScreen extends StatefulWidget {
 
 class _VendorLoginScreenState extends State<VendorLoginScreen> {
   bool rememberMe = false;
+  bool _obscurePassword = true;
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  void _handleLogin() {
+  void _handleLogin() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
     if (email.isNotEmpty && password.isNotEmpty) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
+      final loginProvider = context.read<LoginProvider>();
+
+      final success = await loginProvider.login(email, password);
+
+      if (success) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(loginProvider.errorMessage ?? "Login failed")),
+        );
+      }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in both email and password')),
@@ -88,9 +104,13 @@ class _VendorLoginScreenState extends State<VendorLoginScreen> {
                   const SizedBox(height: 24),
 
                   // Title & Subtitle
-                  Center(child: Text(AppStrings.appTitle, style: AppTextStyles.titleStyle)),
+                  Center(
+                      child: Text(AppStrings.appTitle,
+                          style: AppTextStyles.titleStyle)),
                   const SizedBox(height: 8),
-                  Center(child: Text(AppStrings.vendorLogin, style: AppTextStyles.headingStyle)),
+                  Center(
+                      child: Text(AppStrings.vendorLogin,
+                          style: AppTextStyles.headingStyle)),
                   const SizedBox(height: 32),
 
                   // Email Field
@@ -103,18 +123,23 @@ class _VendorLoginScreenState extends State<VendorLoginScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // Password Field
-                  Text(AppStrings.passwordLabel, style: AppTextStyles.labelStyle),
+                  Text(AppStrings.passwordLabel,
+                      style: AppTextStyles.labelStyle),
                   const SizedBox(height: 8),
                   _buildTextField(
                     controller: _passwordController,
                     hintText: AppStrings.passwordHint,
                     icon: Icons.lock_outline,
-                    obscureText: true,
+                    obscureText: _obscurePassword,
+                    onToggleVisibility: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
                   ),
+
                   const SizedBox(height: 16),
 
-                  // Remember Me & Forgot Password
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -134,30 +159,54 @@ class _VendorLoginScreenState extends State<VendorLoginScreen> {
                         ],
                       ),
                       TextButton(
-                        onPressed: () {},
-                        child: Text(AppStrings.forgotPassword, style: AppTextStyles.linkStyle),
-                      ),
+                        onPressed: () {
+                          Navigator.push(context,
+                              MaterialPageRoute(builder: (context) {
+                            return ForgetPasswordScreen();
+                          }));
+                        },
+                        child: Text(
+                          "Forgot Password",
+                          style: TextStyle(
+                            color: AppColors.highlight,
+                          ),
+                        ),
+                      )
                     ],
                   ),
                   const SizedBox(height: 16),
 
-                  // Login Button
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _handleLogin,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.button,
-                        foregroundColor: AppColors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        elevation: 2,
-                      ),
-                      child: Text(AppStrings.login, style: AppTextStyles.buttonStyle),
+                    child: Consumer<LoginProvider>(
+                      builder: (context, provider, child) {
+                        return ElevatedButton(
+                          onPressed: provider.loading ? null : _handleLogin,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.button,
+                            foregroundColor: AppColors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            elevation: 2,
+                          ),
+                          child: provider.loading
+                              ? const SizedBox(
+                                  height: 24,
+                                  width: 24,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(AppStrings.login,
+                                  style: AppTextStyles.buttonStyle),
+                        );
+                      },
                     ),
                   ),
+
                   const SizedBox(height: 24),
 
                   // Sign Up Redirect
@@ -169,10 +218,12 @@ class _VendorLoginScreenState extends State<VendorLoginScreen> {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const VendorSignUpScreen()),
+                            MaterialPageRoute(
+                                builder: (_) => const VendorSignUpScreen()),
                           );
                         },
-                        child: Text(AppStrings.signUp, style: AppTextStyles.linkStyle),
+                        child: Text(AppStrings.signUp,
+                            style: AppTextStyles.linkStyle),
                       ),
                     ],
                   ),
@@ -190,6 +241,7 @@ class _VendorLoginScreenState extends State<VendorLoginScreen> {
     required String hintText,
     required IconData icon,
     bool obscureText = false,
+    VoidCallback? onToggleVisibility,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -210,8 +262,18 @@ class _VendorLoginScreenState extends State<VendorLoginScreen> {
           hintText: hintText,
           hintStyle: AppTextStyles.hintStyle,
           prefixIcon: Icon(icon, color: AppColors.highlight),
+          suffixIcon: onToggleVisibility != null
+              ? IconButton(
+                  icon: Icon(
+                    obscureText ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.black,
+                  ),
+                  onPressed: onToggleVisibility,
+                )
+              : null,
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
         ),
       ),
     );

@@ -1,21 +1,53 @@
 import 'package:ezyvalet/authintiction/EditProfileScree.dart';
 import 'package:ezyvalet/authintiction/ProfileScreen.dart';
+import 'package:ezyvalet/authintiction/VendorLoginScreen.dart';
+import 'package:ezyvalet/authintiction/change_password_screen.dart';
+import 'package:ezyvalet/authintiction/provider/login_provider.dart';
+import 'package:ezyvalet/authintiction/provider/logout_provider.dart';
 import 'package:ezyvalet/constants/app_colors.dart';
 import 'package:ezyvalet/screens/AnalyticsScreen.dart';
 import 'package:ezyvalet/screens/StaffScreen.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class MyDrawer extends StatelessWidget {
+class MyDrawer extends StatefulWidget {
   const MyDrawer({super.key});
-  final Color accent = AppColors.highlight;
 
   @override
+  State<MyDrawer> createState() => _MyDrawerState();
+}
+
+class _MyDrawerState extends State<MyDrawer> {
+  final Color accent = AppColors.highlight;
+
+  late String token;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadToken();
+  }
+
+  Future<void> _loadToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedToken = prefs.getString('access_token');
+    if (savedToken != null && savedToken.isNotEmpty) {
+      setState(() {
+        token = savedToken;
+      });
+    } else {
+      debugPrint("Token not available yet.");
+    }
+  }
+
+  @override
+
   Widget build(BuildContext context) {
     return Drawer(
       child: SafeArea(
         child: Column(
           children: [
-            // Drawer header
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
@@ -85,7 +117,24 @@ class MyDrawer extends StatelessWidget {
                     onTap: () => _navigate(context, const AnalyticsScreen()),
                   ),
                   const Divider(),
+                  _drawerItem(
+                    context,
+                    text: 'Change Password',
+                    icon: Icons.password,
+                    onTap: () {
+                      final token = Provider.of<LoginProvider>(context, listen: false).token;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChangePasswordScreen(),
+                        ),
+                      );
+                    },
+                  ),
 
+
+
+                  const Divider(),
                   _sectionLabel('General'),
                   _placeholderItem(context, 'About Us', Icons.info_outline),
                   _placeholderItem(context, 'Terms & Conditions', Icons.article_outlined),
@@ -113,11 +162,18 @@ class MyDrawer extends StatelessWidget {
                         child: Text('App version 1.0.0', style: TextStyle(color: Colors.black54)),
                       ),
                       TextButton(
-                        onPressed: () {
-                          // TODO: implement sign out
+                        onPressed: () async {
+                          await context.read<LogoutProvider>().logout(context);
+                          Navigator.push(context, MaterialPageRoute(builder: (context){
+                            return VendorLoginScreen();
+                          }));
                         },
-                        child: const Text('Sign out', style: TextStyle(color: Colors.red)),
+                        child: const Text(
+                          'Sign out',
+                          style: TextStyle(color: Colors.red),
+                        ),
                       )
+
                     ],
                   ),
                 ],
@@ -129,7 +185,6 @@ class MyDrawer extends StatelessWidget {
     );
   }
 
-  // Navigation function
   void _navigate(BuildContext context, Widget screen) {
     Navigator.pop(context);
     Navigator.push(context, MaterialPageRoute(builder: (_) => screen));

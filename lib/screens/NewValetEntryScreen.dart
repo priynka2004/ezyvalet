@@ -1,13 +1,27 @@
 import 'package:ezyvalet/constants/app_colors.dart';
 import 'package:ezyvalet/constants/app_text_styles.dart';
 import 'package:ezyvalet/screens/my_drawer.dart';
+import 'package:ezyvalet/screens/provider/ValetEntryProvider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
-class NewValetEntryScreen extends StatelessWidget {
-  const NewValetEntryScreen({super.key});
+class NewValetEntryScreen extends StatefulWidget {
+  final String token; // Token from login
+  const NewValetEntryScreen({super.key, required this.token});
+
+  @override
+  State<NewValetEntryScreen> createState() => _NewValetEntryScreenState();
+}
+
+class _NewValetEntryScreenState extends State<NewValetEntryScreen> {
+  final _carPlateController = TextEditingController();
+  final _customerMobileController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<ValetEntryProvider>();
+
     return Scaffold(
       endDrawer: MyDrawer(),
       backgroundColor: AppColors.white,
@@ -72,30 +86,62 @@ class NewValetEntryScreen extends StatelessWidget {
                     style: TextStyle(color: AppColors.dark)),
                 const SizedBox(height: 8),
                 _customTextField(
-                  hint: 'e.g., CA123XYZ',
+                  controller: _carPlateController,
+                  hint: 'Plate Number',
                   icon: Icons.directions_car,
                 ),
 
                 const SizedBox(height: 20),
 
-                // Customer Mobile Number
                 const Text('Customer Mobile Number',
                     style: TextStyle(color: AppColors.dark)),
                 const SizedBox(height: 8),
                 _customTextField(
-                  hint: 'e.g., 9876543210',
+                  controller: _customerMobileController,
+                  hint: 'Mobile No.',
                   icon: Icons.phone_android_rounded,
+                  isPhone: true,
                 ),
 
                 const SizedBox(height: 32),
 
-                // Button
+
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
-                    onPressed: () {},
+                    onPressed: provider.isLoading
+                        ? null
+                        : () async {
+                      final success = await provider.createEntry(
+                      //  token: widget.token,
+                        carPlateNumber:
+                        _carPlateController.text.trim(),
+                        customerMobileNumber:
+                        _customerMobileController.text.trim(),
+                      );
+
+                      if (success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content:
+                              Text("Valet entry created successfully")),
+                        );
+                        _carPlateController.clear();
+                        _customerMobileController.clear();
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(
+                                  provider.errorMessage ?? "Error")),
+                        );
+                      }
+                    },
                     icon: Icon(Icons.qr_code, color: AppColors.white),
-                    label: const Text(
+                    label: provider.isLoading
+                        ? const CircularProgressIndicator(
+                      color: Colors.white,
+                    )
+                        : const Text(
                       'Generate QR Code & Park',
                       style: AppTextStyles.buttonWhiteText,
                     ),
@@ -117,9 +163,12 @@ class NewValetEntryScreen extends StatelessWidget {
     );
   }
 
+
   static Widget _customTextField({
+    required TextEditingController controller,
     required String hint,
     required IconData icon,
+    bool isPhone = false,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -128,15 +177,24 @@ class NewValetEntryScreen extends StatelessWidget {
         border: Border.all(color: AppColors.grey),
       ),
       child: TextField(
-        style: const TextStyle(color:AppColors.grey),
+        controller: controller,
+        style: const TextStyle(color: AppColors.grey),
+        keyboardType: isPhone ? TextInputType.phone : TextInputType.text,
+        inputFormatters: isPhone
+            ? [
+          FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(10),
+        ]
+            : [],
         decoration: InputDecoration(
           hintText: hint,
-          hintStyle: const TextStyle(color:AppColors.grey),
-          prefixIcon: Icon(icon, color:AppColors.grey),
+          hintStyle: const TextStyle(color: AppColors.grey),
+          prefixIcon: Icon(icon, color: AppColors.grey),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(vertical: 16),
         ),
       ),
     );
   }
+
 }

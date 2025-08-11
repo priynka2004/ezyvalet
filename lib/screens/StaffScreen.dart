@@ -11,6 +11,7 @@ class StaffScreen extends StatefulWidget {
 
 class _StaffScreenState extends State<StaffScreen> {
   final DateTime selectedDate = DateTime.now();
+
   Map<String, bool> staffAvailability = {
     'Aakash': false,
     'Romit': false,

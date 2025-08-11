@@ -1,9 +1,11 @@
+import 'package:ezyvalet/screens/HomePage.dart';
 import 'package:flutter/material.dart';
 import 'package:ezyvalet/constants/app_colors.dart';
 import 'package:ezyvalet/constants/app_images.dart';
 import 'package:ezyvalet/constants/app_strings.dart';
 import 'package:ezyvalet/constants/app_text_styles.dart';
 import 'package:ezyvalet/authintiction/VendorLoginScreen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class EzyValetScreen extends StatelessWidget {
   const EzyValetScreen({super.key});
@@ -89,21 +91,24 @@ class EzyValetScreen extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context){
-                          return VendorLoginScreen();
-                        }));
+                      onPressed: () async {
+                        final prefs = await SharedPreferences.getInstance();
+                        final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+
+                        if (isLoggedIn) {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const HomePage()));
+                        } else {
+                          Navigator.push(context, MaterialPageRoute(builder: (_) => const VendorLoginScreen()));
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.button,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30),
                         ),
                       ),
-                      child: Text(AppStrings.loginSignup,
-                          style: AppTextStyles.buttonWhiteText),
+                      child: Text(AppStrings.loginSignup, style: AppTextStyles.buttonWhiteText),
                     ),
                     const SizedBox(width: 12),
                     OutlinedButton(
@@ -229,12 +234,17 @@ class EzyValetScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: SizedBox(
         width: double.infinity,
-        child: ElevatedButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const VendorLoginScreen()),
-            );
+        child:// Inside _buildVendorLoginButton:
+        ElevatedButton(
+          onPressed: () async {
+            final prefs = await SharedPreferences.getInstance();
+            final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+
+            if (isLoggedIn) {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const HomePage()));
+            } else {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const VendorLoginScreen()));
+            }
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.buttonLight,
@@ -245,6 +255,7 @@ class EzyValetScreen extends StatelessWidget {
           ),
           child: Text(AppStrings.vendorLogin, style: AppTextStyles.buttonDarkText),
         ),
+
       ),
     );
   }
