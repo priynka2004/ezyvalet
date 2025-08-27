@@ -1,3 +1,4 @@
+import 'package:cherry_toast/cherry_toast.dart';
 import 'package:ezyvalet/authintiction/VendorLoginScreen.dart';
 import 'package:ezyvalet/authintiction/provider/ResetPasswordProvider.dart';
 import 'package:ezyvalet/constants/app_colors.dart';
@@ -90,9 +91,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                 onPressed: () async {
                   if (newPasswordController.text.trim() !=
                       confirmPasswordController.text.trim()) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Passwords do not match")),
-                    );
+                    CherryToast.error(
+                      title: const Text("Passwords do not match"),
+                      animationDuration: const Duration(milliseconds: 500),
+                      autoDismiss: true,
+                    ).show(context);
                     return;
                   }
 
@@ -105,17 +108,22 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
                   final provider = context.read<ResetPasswordProvider>();
                   if (provider.errorMessage == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Password reset successful")),
-                    );
+                    CherryToast.success(
+                      title: const Text("Password reset successful"),
+                      animationDuration: const Duration(milliseconds: 500),
+                      autoDismiss: true,
+                    ).show(context);
+
                     Navigator.push(context,
                         MaterialPageRoute(builder: (context) {
                           return VendorLoginScreen();
                         }));
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(provider.errorMessage!)),
-                    );
+                    CherryToast.error(
+                      title: Text(provider.errorMessage!),
+                      animationDuration: const Duration(milliseconds: 500),
+                      autoDismiss: true,
+                    ).show(context);
                   }
                 },
                 child: const Text(
@@ -123,7 +131,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   style: TextStyle(fontSize: 16, color: Colors.white),
                 ),
               ),
-            ),
+            )
           ],
         ),
       ),

@@ -40,6 +40,13 @@ dependencies:
   http: ^1.4.0
   provider: ^6.1.5
   shared_preferences: ^2.2.2
+  pretty_qr_code: ^3.4.0
+  share_plus: ^10.0.2
+  path_provider: ^2.1.3
+  url_launcher: ^6.3.1
+  cherry_toast: ^1.13.0
+  flutter_widget_from_html_core: ^0.16.0
+
 
 dev_dependencies:
   flutter_test:
@@ -66,7 +73,11 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
-  #   - images/a_dot_ham.jpeg
+    - assets/html/terms_and_conditions.html
+    - assets/html/privacy_policy.html
+    - assets/html/about_us.html
+    - assets/html/refund_policy.html
+    - assets/html/contact_us.html
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

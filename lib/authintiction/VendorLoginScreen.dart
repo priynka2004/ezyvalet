@@ -1,11 +1,9 @@
+import 'package:cherry_toast/cherry_toast.dart';
+import 'package:cherry_toast/resources/arrays.dart';
 import 'package:ezyvalet/authintiction/ForgetPasswordScreen.dart';
 import 'package:ezyvalet/authintiction/VendorSignUpScreen.dart';
-import 'package:ezyvalet/authintiction/provider/forget_password_provider.dart';
 import 'package:ezyvalet/authintiction/provider/login_provider.dart';
-import 'package:ezyvalet/authintiction/service/login_service.dart';
 import 'package:ezyvalet/screens/HomePage.dart';
-import 'package:ezyvalet/screens/NewValetEntryScreen.dart';
-import 'package:ezyvalet/unused_screen/main_navigation_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../constants/app_colors.dart';
@@ -21,6 +19,7 @@ class VendorLoginScreen extends StatefulWidget {
 }
 
 class _VendorLoginScreenState extends State<VendorLoginScreen> {
+  final _formKey = GlobalKey<FormState>();
   bool rememberMe = false;
   bool _obscurePassword = true;
 
@@ -28,28 +27,39 @@ class _VendorLoginScreenState extends State<VendorLoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   void _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return; // Validation check
+
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
-    if (email.isNotEmpty && password.isNotEmpty) {
-      final loginProvider = context.read<LoginProvider>();
+    final loginProvider = context.read<LoginProvider>();
+    final success = await loginProvider.login(email, password);
 
-      final success = await loginProvider.login(email, password);
+    if (success) {
+      // ✅ CherryToast success
+      CherryToast.success(
+        title: const Text("Login successful"),
+        displayIcon: true,
+        toastPosition: Position.bottom,
+        animationType: AnimationType.fromBottom,
+        autoDismiss: true,
+      ).show(context);
 
-      if (success) {
+      Future.delayed(const Duration(milliseconds: 800), () {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomePage()),
         );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(loginProvider.errorMessage ?? "Login failed")),
-        );
-      }
+      });
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in both email and password')),
-      );
+      // ❌ CherryToast error
+      CherryToast.error(
+        title: Text(loginProvider.errorMessage ?? "Login failed"),
+        displayIcon: true,
+        toastPosition: Position.bottom,
+        animationType: AnimationType.fromBottom,
+        autoDismiss: true,
+      ).show(context);
     }
   }
 
@@ -79,155 +89,162 @@ class _VendorLoginScreenState extends State<VendorLoginScreen> {
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Back button
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.white,
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          )
-                        ],
-                      ),
-                      padding: const EdgeInsets.all(8),
-                      child: const Icon(Icons.arrow_back),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Title & Subtitle
-                  Center(
-                      child: Text(AppStrings.appTitle,
-                          style: AppTextStyles.titleStyle)),
-                  const SizedBox(height: 8),
-                  Center(
-                      child: Text(AppStrings.vendorLogin,
-                          style: AppTextStyles.headingStyle)),
-                  const SizedBox(height: 32),
-
-                  // Email Field
-                  Text(AppStrings.emailLabel, style: AppTextStyles.labelStyle),
-                  const SizedBox(height: 8),
-                  _buildTextField(
-                    controller: _emailController,
-                    hintText: AppStrings.emailHint,
-                    icon: Icons.email_outlined,
-                  ),
-                  const SizedBox(height: 16),
-
-                  Text(AppStrings.passwordLabel,
-                      style: AppTextStyles.labelStyle),
-                  const SizedBox(height: 8),
-                  _buildTextField(
-                    controller: _passwordController,
-                    hintText: AppStrings.passwordHint,
-                    icon: Icons.lock_outline,
-                    obscureText: _obscurePassword,
-                    onToggleVisibility: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Checkbox(
-                            checkColor: AppColors.white,
-                            activeColor: AppColors.highlight,
-                            value: rememberMe,
-                            onChanged: (value) {
-                              setState(() {
-                                rememberMe = value ?? false;
-                              });
-                            },
-                          ),
-                          const Text(AppStrings.rememberMe),
-                        ],
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(context,
-                              MaterialPageRoute(builder: (context) {
-                            return ForgetPasswordScreen();
-                          }));
-                        },
-                        child: Text(
-                          "Forgot Password",
-                          style: TextStyle(
-                            color: AppColors.highlight,
-                          ),
+              child: Form( // Wrapped with Form
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Back button
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(30),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.2),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            )
+                          ],
                         ),
-                      )
-                    ],
-                  ),
-                  const SizedBox(height: 16),
+                        padding: const EdgeInsets.all(8),
+                        child: const Icon(Icons.arrow_back),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
 
-                  SizedBox(
-                    width: double.infinity,
-                    child: Consumer<LoginProvider>(
-                      builder: (context, provider, child) {
-                        return ElevatedButton(
-                          onPressed: provider.loading ? null : _handleLogin,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.button,
-                            foregroundColor: AppColors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            elevation: 2,
-                          ),
-                          child: provider.loading
-                              ? const SizedBox(
-                                  height: 24,
-                                  width: 24,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : Text(AppStrings.login,
-                                  style: AppTextStyles.buttonStyle),
-                        );
+                    // Title & Subtitle
+                    Center(child: Text(AppStrings.appTitle, style: AppTextStyles.titleStyle)),
+                    const SizedBox(height: 8),
+                    Center(child: Text(AppStrings.vendorLogin, style: AppTextStyles.headingStyle)),
+                    const SizedBox(height: 32),
+
+                    // Email Field
+                    Text(AppStrings.emailLabel, style: AppTextStyles.labelStyle),
+                    const SizedBox(height: 8),
+                    _buildTextField(
+                      controller: _emailController,
+                      hintText: AppStrings.emailHint,
+                      icon: Icons.email_outlined,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "Please enter your email";
+                        }
+                        if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                          return "Enter a valid email";
+                        }
+                        return null;
                       },
                     ),
-                  ),
+                    const SizedBox(height: 16),
 
-                  const SizedBox(height: 24),
+                    Text(AppStrings.passwordLabel, style: AppTextStyles.labelStyle),
+                    const SizedBox(height: 8),
+                    _buildTextField(
+                      controller: _passwordController,
+                      hintText: AppStrings.passwordHint,
+                      icon: Icons.lock_outline,
+                      obscureText: _obscurePassword,
+                      onToggleVisibility: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return "Please enter your password";
+                        }
+                        if (value.length < 6) {
+                          return "Password must be at least 6 characters";
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
 
-                  // Sign Up Redirect
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(AppStrings.dontHaveAccount),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const VendorSignUpScreen()),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Checkbox(
+                              checkColor: AppColors.white,
+                              activeColor: AppColors.highlight,
+                              value: rememberMe,
+                              onChanged: (value) {
+                                setState(() {
+                                  rememberMe = value ?? false;
+                                });
+                              },
+                            ),
+                            const Text(AppStrings.rememberMe),
+                          ],
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(context, MaterialPageRoute(builder: (context) {
+                              return ForgetPasswordScreen();
+                            }));
+                          },
+                          child: Text(
+                            "Forgot Password",
+                            style: TextStyle(color: AppColors.highlight),
+                          ),
+                        )
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    SizedBox(
+                      width: double.infinity,
+                      child: Consumer<LoginProvider>(
+                        builder: (context, provider, child) {
+                          return ElevatedButton(
+                            onPressed: provider.loading ? null : _handleLogin,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.button,
+                              foregroundColor: AppColors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              elevation: 2,
+                            ),
+                            child: provider.loading
+                                ? const SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                                : Text(AppStrings.login, style: AppTextStyles.buttonStyle),
                           );
                         },
-                        child: Text(AppStrings.signUp,
-                            style: AppTextStyles.linkStyle),
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(AppStrings.dontHaveAccount),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const VendorSignUpScreen()),
+                            );
+                          },
+                          child: Text(AppStrings.signUp, style: AppTextStyles.linkStyle),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -242,6 +259,7 @@ class _VendorLoginScreenState extends State<VendorLoginScreen> {
     required IconData icon,
     bool obscureText = false,
     VoidCallback? onToggleVisibility,
+    String? Function(String?)? validator, // Added validator
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -258,24 +276,25 @@ class _VendorLoginScreenState extends State<VendorLoginScreen> {
       child: TextFormField(
         controller: controller,
         obscureText: obscureText,
+        validator: validator, // Apply validation
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: AppTextStyles.hintStyle,
           prefixIcon: Icon(icon, color: AppColors.highlight),
           suffixIcon: onToggleVisibility != null
               ? IconButton(
-                  icon: Icon(
-                    obscureText ? Icons.visibility_off : Icons.visibility,
-                    color: Colors.black,
-                  ),
-                  onPressed: onToggleVisibility,
-                )
+            icon: Icon(
+              obscureText ? Icons.visibility_off : Icons.visibility,
+              color: Colors.black,
+            ),
+            onPressed: onToggleVisibility,
+          )
               : null,
           border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
+          contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
         ),
       ),
     );
   }
 }
+

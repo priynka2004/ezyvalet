@@ -5,7 +5,8 @@ import 'package:http/http.dart' as http;
 class ActiveValetService {
   final TokenService _tokenService = TokenService();
 
-  // Active Count API
+  /// ************************************************* Active Count API
+
   Future<int?> fetchActiveCounts() async {
     try {
       final token = await _tokenService.getAccessToken();
@@ -33,7 +34,10 @@ class ActiveValetService {
     return null;
   }
 
-  // Active List API
+
+  ///*************************************************** Active List API
+
+
   Future<List<Map<String, dynamic>>> fetchActiveList() async {
     try {
       final token = await _tokenService.getAccessToken();
@@ -62,6 +66,9 @@ class ActiveValetService {
     }
     return [];
   }
+
+
+  ///*************************************************** ManualRelease API
 
 
   Future<bool> manualRelease(int valetId, String pin) async {

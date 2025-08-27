@@ -28,20 +28,22 @@ class ActiveValetProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> manualRelease(int valetId, String pin) async {
-    isLoading = true;
-    notifyListeners();
+  Future<bool> manualRelease(int valetId, String pin) async {
+    try {
+      final success = await _service.manualRelease(valetId, pin);
 
-    final success = await _service.manualRelease(valetId, pin);
+      if (success) {
+        // ✅ Sirf success pe reload karo
+        await loadActiveData();
+      }
+      // ❌ Fail case me purana data disturb mat karo
+      return success;
 
-    if (success) {
-      await loadActiveData();
-    } else {
+    } catch (e) {
       errorMessage = "Manual release failed";
+      return false;
     }
-
-    isLoading = false;
-    notifyListeners();
   }
+
 
 }

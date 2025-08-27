@@ -1,3 +1,5 @@
+import 'package:cherry_toast/cherry_toast.dart';
+import 'package:cherry_toast/resources/arrays.dart';
 import 'package:ezyvalet/authintiction/ResetPasswordScreen.dart';
 import 'package:ezyvalet/authintiction/provider/forget_password_provider.dart';
 import 'package:ezyvalet/constants/app_colors.dart';
@@ -67,9 +69,10 @@ class ForgetPasswordScreen extends StatelessWidget {
                 onPressed: () async {
                   final email = emailController.text.trim();
                   if (email.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Please enter your email")),
-                    );
+                    CherryToast.error(
+                      title: const Text("Please enter your email"),
+                      toastPosition: Position.bottom,
+                    ).show(context);
                     return;
                   }
 
@@ -77,13 +80,19 @@ class ForgetPasswordScreen extends StatelessWidget {
 
                   final provider = context.read<ForgetPasswordProvider>();
                   if (provider.errorMessage == null) {
-                    Navigator.push(context, MaterialPageRoute(builder: (context){
+                    CherryToast.success(
+                      title: const Text("Reset link sent successfully"),
+                      toastPosition: Position.bottom,
+                    ).show(context);
+
+                    Navigator.push(context, MaterialPageRoute(builder: (context) {
                       return ResetPasswordScreen();
                     }));
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(provider.errorMessage!)),
-                    );
+                    CherryToast.error(
+                      title: Text(provider.errorMessage!),
+                      toastPosition: Position.bottom,
+                    ).show(context);
                   }
                 },
                 child: const Text(
@@ -91,7 +100,8 @@ class ForgetPasswordScreen extends StatelessWidget {
                   style: TextStyle(fontSize: 16, color: Colors.white),
                 ),
               ),
-            ),
+            )
+
           ],
         ),
       ),

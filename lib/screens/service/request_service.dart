@@ -6,7 +6,6 @@ class RequestService {
   final TokenService _tokenService = TokenService();
   final String baseUrl = "http://ezyvalet.bonanso.com";
 
-
   Future<List<Map<String, dynamic>>> fetchRequestList() async {
     try {
       final token = await _tokenService.getAccessToken();
@@ -26,8 +25,9 @@ class RequestService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        if (data is List) {
-          return List<Map<String, dynamic>>.from(data);
+
+        if (data is Map && data.containsKey("requests")) {
+          return List<Map<String, dynamic>>.from(data["requests"]);
         }
       }
     } catch (e) {
@@ -36,7 +36,6 @@ class RequestService {
     return [];
   }
 
-  // Verify and release car
   Future<bool> verifyAndRelease(int id, String pin) async {
     try {
       final token = await _tokenService.getAccessToken();

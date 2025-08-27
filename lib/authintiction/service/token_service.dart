@@ -9,7 +9,7 @@ class TokenService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_accessTokenKey, accessToken);
     await prefs.setString(_refreshTokenKey, refreshToken);
-    await prefs.setBool(_isLoggedInKey, true); // ✅ mark logged in
+    await prefs.setBool(_isLoggedInKey, true);
   }
 
   Future<String?> getAccessToken() async {
@@ -26,6 +26,6 @@ class TokenService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_accessTokenKey);
     await prefs.remove(_refreshTokenKey);
-    await prefs.setBool(_isLoggedInKey, false); // ✅ mark logged out
+    await prefs.setBool(_isLoggedInKey, false);
   }
 }

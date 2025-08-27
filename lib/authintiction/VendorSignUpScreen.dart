@@ -1,3 +1,5 @@
+import 'package:cherry_toast/cherry_toast.dart';
+import 'package:cherry_toast/resources/arrays.dart';
 import 'package:ezyvalet/authintiction/VendorLoginScreen.dart';
 import 'package:ezyvalet/authintiction/provider/signup_provider.dart';
 import 'package:ezyvalet/constants/app_colors.dart';
@@ -31,15 +33,18 @@ class _VendorSignUpScreenState extends State<VendorSignUpScreen> {
   final _confirmPasswordController = TextEditingController();
 
   Widget _buildTextField(
-      String hintText,
-      IconData icon,
-      TextEditingController controller, {
-        bool obscureText = false,
-        VoidCallback? toggleObscure,
-      }) {
+    String hintText,
+    IconData icon,
+    TextEditingController controller, {
+    bool obscureText = false,
+    VoidCallback? toggleObscure,
+    TextInputType keyboardType = TextInputType.text, // default
+  }) {
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
+      keyboardType: keyboardType,
+      // 👈 Added here
       validator: (value) {
         if (value == null || value.isEmpty) {
           return "Please enter $hintText";
@@ -48,15 +53,15 @@ class _VendorSignUpScreenState extends State<VendorSignUpScreen> {
       },
       decoration: InputDecoration(
         hintText: hintText,
-        prefixIcon: Icon(icon, color: const Color(0xFF9C854A)),
+        prefixIcon: Icon(icon, color: AppColors.highlight),
         suffixIcon: toggleObscure != null
             ? IconButton(
-          icon: Icon(
-            obscureText ? Icons.visibility_off : Icons.visibility,
-            color: Colors.black,
-          ),
-          onPressed: toggleObscure,
-        )
+                icon: Icon(
+                  obscureText ? Icons.visibility_off : Icons.visibility,
+                  color: Colors.black,
+                ),
+                onPressed: toggleObscure,
+              )
             : null,
         filled: true,
         fillColor: const Color(0xFFF0F2F6),
@@ -94,9 +99,15 @@ class _VendorSignUpScreenState extends State<VendorSignUpScreen> {
               const SizedBox(height: 20),
               _buildTextField("Full Name", Icons.person, _fullNameController),
               const SizedBox(height: 12),
-              _buildTextField("Business Name", Icons.business_center, _businessNameController),
+              _buildTextField("Business Name", Icons.business_center,
+                  _businessNameController),
               const SizedBox(height: 12),
-              _buildTextField("Phone Number", Icons.phone, _phoneController),
+              _buildTextField(
+                "Phone Number",
+                Icons.phone,
+                _phoneController,
+                keyboardType: TextInputType.phone,
+              ),
               const SizedBox(height: 12),
               _buildTextField("Address", Icons.location_on, _addressController),
               const SizedBox(height: 12),
@@ -104,7 +115,12 @@ class _VendorSignUpScreenState extends State<VendorSignUpScreen> {
               const SizedBox(height: 12),
               _buildTextField("State", Icons.map, _stateController),
               const SizedBox(height: 12),
-              _buildTextField("Pin Code", Icons.tag, _pinCodeController),
+              _buildTextField(
+                "Pin Code",
+                Icons.tag,
+                _pinCodeController,
+                keyboardType: TextInputType.number,
+              ),
               const SizedBox(height: 12),
               _buildTextField("Email", Icons.email, _emailController),
               const SizedBox(height: 12),
@@ -132,13 +148,13 @@ class _VendorSignUpScreenState extends State<VendorSignUpScreen> {
                 },
               ),
               const SizedBox(height: 12),
-
               Row(
                 children: [
                   Checkbox(
                     value: _agreedToPolicy,
-                    activeColor: const Color(0xFF9C854A),
-                    onChanged: (value) => setState(() => _agreedToPolicy = value ?? false),
+                    activeColor: AppColors.highlight,
+                    onChanged: (value) =>
+                        setState(() => _agreedToPolicy = value ?? false),
                   ),
                   const Expanded(
                     child: Text(
@@ -149,68 +165,84 @@ class _VendorSignUpScreenState extends State<VendorSignUpScreen> {
                 ],
               ),
               const SizedBox(height: 12),
-
               signupProvider.loading
                   ? const CircularProgressIndicator()
                   : SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate() && _agreedToPolicy) {
-                      if (_passwordController.text != _confirmPasswordController.text) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Passwords do not match")));
-                        return;
-                      }
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          if (_formKey.currentState!.validate() &&
+                              _agreedToPolicy) {
+                            if (_passwordController.text !=
+                                _confirmPasswordController.text) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                      content: Text("Passwords do not match")));
+                              return;
+                            }
 
-                      final body = {
-                        "business_name": _businessNameController.text,
-                        "address": _addressController.text,
-                        "city": _cityController.text,
-                        "state": _stateController.text,
-                        "pin_code": _pinCodeController.text,
-                        "mobile_number": _phoneController.text,
-                        "email": _emailController.text,
-                        "agree_to_terms": _agreedToPolicy,
-                        "password": _passwordController.text,
-                      };
+                            final body = {
+                              "business_name": _businessNameController.text,
+                              "address": _addressController.text,
+                              "city": _cityController.text,
+                              "state": _stateController.text,
+                              "pin_code": _pinCodeController.text,
+                              "mobile_number": _phoneController.text,
+                              "email": _emailController.text,
+                              "agree_to_terms": _agreedToPolicy,
+                              "password": _passwordController.text,
+                            };
 
-                      bool success = await signupProvider.signup(body);
+                            bool success = await signupProvider.signup(body);
 
-                      if (success) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Signup Successful")));
-                        Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const VendorLoginScreen()));
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                            content: Text(
-                                signupProvider.errorMessage ?? "Signup Failed")));
-                      }
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE4B63A),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
+                            if (success) {
+                              CherryToast.success(
+                                title: const Text("Signup Successful"),
+                                displayCloseButton: false,
+                                toastPosition: Position.bottom,
+                                animationDuration: const Duration(milliseconds: 500),
+                                autoDismiss: true,
+                              ).show(context);
+
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(builder: (context) => const VendorLoginScreen()),
+                              );
+                            } else {
+                              CherryToast.error(
+                                title: Text(signupProvider.errorMessage ?? "Signup Failed"),
+                                displayCloseButton: false,
+                                toastPosition: Position.bottom,
+                                animationDuration: const Duration(milliseconds: 500),
+                                autoDismiss: true,
+                              ).show(context);
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF4a017f),
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                        ),
+                        child: const Text(
+                          "Sign Up",
+                          style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16),
+                        ),
+                      ),
                     ),
-                  ),
-                  child: const Text(
-                    "Sign Up",
-                    style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                ),
-              ),
-
               const SizedBox(height: 12),
               TextButton(
-                onPressed: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => const VendorLoginScreen())),
-                child: Text("Already a vendor? Login", style: TextStyle(color: AppColors.highlight)),
+                onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => const VendorLoginScreen())),
+                child: Text("Already a vendor? Login",
+                    style: TextStyle(color: AppColors.highlight)),
               ),
             ],
           ),

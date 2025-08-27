@@ -1,3 +1,5 @@
+import 'package:cherry_toast/cherry_toast.dart';
+import 'package:cherry_toast/resources/arrays.dart';
 import 'package:ezyvalet/constants/app_colors.dart';
 import 'package:ezyvalet/screens/provider/ActiveValetProvider.dart';
 import 'package:flutter/material.dart';
@@ -14,66 +16,140 @@ class _ActiveValetScreenState extends State<ActiveValetScreen> {
 
   void _showReleaseConfirmation(
       BuildContext context, Map<String, dynamic> valet) {
+    final _formKey = GlobalKey<FormState>();
+    final TextEditingController pinController = TextEditingController();
+    bool localLoading = false;
+
     showDialog(
       context: context,
       builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         insetPadding: const EdgeInsets.symmetric(horizontal: 24),
         child: Padding(
           padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-               Icon(Icons.warning_amber_rounded,
-                  size: 60, color: AppColors.highlight),
-              const SizedBox(height: 12),
-              Text(
-                "Manual Release",
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Verify Handover",
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  "Ask the customer for their 4-digit PIN to confirm vehicle release.",
+                  style: TextStyle(color: Colors.black54, fontSize: 14),
+                ),
+                const SizedBox(height: 20),
+
+                Row(
+                  children: [
+                    const Text(
+                      "Releasing Car :",
+                      style: TextStyle(fontSize: 14, color: Colors.black54),
                     ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                "Are you sure you want to release car\n${valet['car_plate_number']}?",
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16, color: Colors.black54),
-              ),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
-                        side: BorderSide(color:AppColors.highlight ),
+                    const Spacer(),
+                    Text(
+                      valet['car_plate_number'] ?? '',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                const Text(
+                  "Customer's 4-Digit PIN",
+                  style: TextStyle(fontSize: 14, color: Colors.black54),
+                ),
+                const SizedBox(height: 8),
+
+                TextFormField(
+                  controller: pinController,
+                  obscureText: true,
+                  maxLength: 4,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    counterText: "",
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.dark),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12),
+                    hintText: "Enter 4-digit PIN",
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter the PIN';
+                    }
+                    if (value.length != 4) {
+                      return 'PIN must be exactly 4 digits';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    OutlinedButton(
                       onPressed: () => Navigator.pop(context),
-                      child: Text("Cancel",style: TextStyle(color: AppColors.highlight,),),
+                      child: Text("Cancel",
+                          style: TextStyle(color: AppColors.dark)),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.redAccent,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
-                      ),
-                      onPressed: () {
-                        Navigator.pop(context);
-                        context
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (!_formKey.currentState!.validate()) return;
+
+                        setState(() => localLoading = true);
+
+                        final success = await context
                             .read<ActiveValetProvider>()
-                            .manualRelease(valet['id'], valet['pin']);
+                            .manualRelease(valet['id'], pinController.text);
+
+                        setState(() => localLoading = false);
+
+                        if (success) {
+                          Navigator.pop(context);
+                          CherryToast.success(
+                            title: const Text("Vehicle released successfully!"),
+                            toastPosition: Position.bottom,
+                          ).show(context);
+                        } else {
+                          CherryToast.error(
+                            title: const Text("Please enter the correct PIN."),
+                            toastPosition: Position.bottom,
+                          ).show(context);
+                        }
                       },
-                      child: Text("Release",style: TextStyle(color:AppColors.white),),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.highlight,
+                      ),
+                      child: localLoading
+                          ? const SizedBox(
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
+                      )
+                          : Text(
+                        "Verify & Release",
+                        style: TextStyle(color: AppColors.white),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -99,11 +175,13 @@ class _ActiveValetScreenState extends State<ActiveValetScreen> {
       ),
       body: Consumer<ActiveValetProvider>(
         builder: (context, provider, child) {
-          if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator());
+          if (provider.isLoading && provider.activeList.isEmpty) {
+            return Center(
+              child: CircularProgressIndicator(color: AppColors.highlight),
+            );
           }
 
-          if (provider.errorMessage != null) {
+          if (provider.errorMessage != null && provider.activeList.isEmpty) {
             return Center(child: Text(provider.errorMessage!));
           }
 
@@ -111,47 +189,21 @@ class _ActiveValetScreenState extends State<ActiveValetScreen> {
             return _buildEmptyState();
           }
 
-          return Column(
-            children: [
-              // Container(
-              //   margin: const EdgeInsets.all(16),
-              //   padding: const EdgeInsets.all(16),
-              //   decoration: BoxDecoration(
-              //     color: AppColors.highlight.withOpacity(0.1),
-              //     borderRadius: BorderRadius.circular(12),
-              //   ),
-              //   child: Row(
-              //     mainAxisAlignment: MainAxisAlignment.center,
-              //     children: [
-              //       const Icon(Icons.directions_car, color: AppColors.highlight, size: 28),
-              //       const SizedBox(width: 8),
-              //       Text(
-              //         "Active Cars: ${provider.activeCount}",
-              //         style: const TextStyle(
-              //           fontSize: 18,
-              //           fontWeight: FontWeight.bold,
-              //           color: AppColors.highlight,
-              //         ),
-              //       ),
-              //     ],
-              //   ),
-              // ),
-
-              // Valet List
-              Expanded(
-                child: _buildValetList(provider.activeList),
-              ),
-            ],
+          return RefreshIndicator(
+            onRefresh: () => context.read<ActiveValetProvider>().loadActiveData(),
+            color: AppColors.highlight,
+            child: _buildValetList(provider.activeList),
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.highlight,
-        onPressed: () {
-          context.read<ActiveValetProvider>().loadActiveData();
-        },
-        child: const Icon(Icons.refresh, color: Colors.white),
-      ),
+
+      // floatingActionButton: FloatingActionButton(
+      //   backgroundColor: AppColors.highlight,
+      //   onPressed: () {
+      //     context.read<ActiveValetProvider>().loadActiveData();
+      //   },
+      //   child: const Icon(Icons.refresh, color: Colors.white),
+      // ),
     );
   }
 
@@ -189,89 +241,78 @@ class _ActiveValetScreenState extends State<ActiveValetScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
             color: Colors.black12,
-            blurRadius: 6,
-            offset: const Offset(0, 3),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Car Plate Number
-          Text(
-            valet['car_plate_number']?.toString() ?? 'N/A',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.dark,
-            ),
-          ),
-          const SizedBox(height: 6),
-
-          // Customer Mobile Number
-          Row(
-            children: [
-              const Icon(Icons.phone_android, size: 18, color: Colors.grey),
-              const SizedBox(width: 8),
-              Text(
-                valet['customer_mobile_number']?.toString() ?? '',
-                style: const TextStyle(color: Colors.black54, fontSize: 14),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(Icons.lock_open_rounded,
-                      size: 18, color: Colors.grey),
-                  const SizedBox(width: 6),
-                  Text(
-                    'PIN: ${valet['pin'] ?? ''}',
-                    style: const TextStyle(color: Colors.grey, fontSize: 14),
-                  ),
-                ],
+              Text(
+                valet['car_plate_number'] ?? 'N/A',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
               ),
-              valet['qr_code_url'] != null
-                  ? Image.network(valet['qr_code_url'], height: 40, width: 40)
-                  : const SizedBox(),
+              Text(
+                valet['created_at_time'] ?? '',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.black,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+
+          // Phone number row
+          Row(
+            children: [
+              const Icon(Icons.phone_android, size: 16, color: Colors.grey),
+              const SizedBox(width: 4),
+              Text(
+                valet['customer_mobile_number'] ?? '',
+                style: const TextStyle(fontSize: 14, color: Colors.grey),
+              ),
             ],
           ),
           const SizedBox(height: 12),
 
-          // Manual Release Button
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              icon: Icon(
-                Icons.lock_open,
-                size: 18,
-                color: AppColors.white,
+          GestureDetector(
+            onTap: () => _showReleaseConfirmation(context, valet),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade300),
               ),
-              label: Text(
-                "Manual Release",
-                style: TextStyle(
-                  color: AppColors.white,
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.lock_open, size: 16, color: Colors.grey),
+                  SizedBox(width: 6),
+                  Text(
+                    "Manual Release",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.highlight,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              onPressed: () {
-                _showReleaseConfirmation(context, valet);
-              },
             ),
-          )
+          ),
         ],
       ),
     );

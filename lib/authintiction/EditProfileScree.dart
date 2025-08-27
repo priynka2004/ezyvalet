@@ -1,6 +1,8 @@
-
+import 'package:cherry_toast/cherry_toast.dart';
 import 'package:ezyvalet/constants/app_colors.dart';
+import 'package:ezyvalet/authintiction/provider/profile_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -12,15 +14,30 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  final TextEditingController _businessNameController = TextEditingController(text: 'Delhi Grand');
-  final TextEditingController _addressController = TextEditingController(text: 'Delhi');
-  final TextEditingController _cityController = TextEditingController(text: 'Delhi');
-  final TextEditingController _stateController = TextEditingController(text: 'Delhi');
-  final TextEditingController _pinCodeController = TextEditingController(text: '110001');
-  final TextEditingController _mobileController = TextEditingController(text: '9457825005');
+  late TextEditingController _businessNameController;
+  late TextEditingController _addressController;
+  late TextEditingController _cityController;
+  late TextEditingController _stateController;
+  late TextEditingController _pinCodeController;
+  late TextEditingController _mobileController;
+
+  @override
+  void initState() {
+    super.initState();
+    final profile = context.read<ProfileProvider>().profile;
+
+    _businessNameController = TextEditingController(text: profile?['vendor_name'] ?? "");
+    _addressController = TextEditingController(text: profile?['vendor_address'] ?? "");
+    _cityController = TextEditingController(text: profile?['city'] ?? "");
+    _stateController = TextEditingController(text: profile?['state'] ?? "");
+    _pinCodeController = TextEditingController(text: profile?['pin_code'] ?? "");
+    _mobileController = TextEditingController(text: profile?['mobile_number'] ?? "");
+  }
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<ProfileProvider>();
+
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: AppBar(
@@ -32,7 +49,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
-      body: Padding(
+      body: provider.loading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
@@ -61,7 +80,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
-                  child: Text('Save Changes', style: TextStyle(fontSize: 18,color: AppColors.white,),),
+                  child: provider.loading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : Text('Save Changes', style: TextStyle(fontSize: 18, color: AppColors.white)),
                 ),
               )
             ],
@@ -102,11 +123,45 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  void _saveChanges() {
+  Future<void> _saveChanges() async {
     if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully')),
-      );
+      final provider = context.read<ProfileProvider>();
+
+      final body = {
+        "vendor_name": _businessNameController.text.trim(),
+        "vendor_address": _addressController.text.trim(),
+        "city": _cityController.text.trim(),
+        "state": _stateController.text.trim(),
+        "pin_code": _pinCodeController.text.trim(),
+        "mobile_number": _mobileController.text.trim(),
+      };
+
+      // ✅ Profile id yaha se lo
+      final id = provider.profile?['id'];
+
+      if (id == null) {
+        CherryToast.error(
+          title: const Text("Profile ID not found"),
+        ).show(context);
+        return;
+      }
+
+      bool success = await provider.updateProfile(id, body);
+
+      if (success) {
+        CherryToast.success(
+          title: const Text("Profile updated successfully"),
+        ).show(context);
+      } else {
+        CherryToast.error(
+          title: Text(provider.error ?? "Update failed"),
+        ).show(context);
+      }
+    } else {
+      CherryToast.error(
+        title: const Text("Please correct the errors"),
+      ).show(context);
     }
   }
+
 }

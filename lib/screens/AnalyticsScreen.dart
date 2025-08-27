@@ -1,6 +1,8 @@
 import 'package:ezyvalet/constants/app_colors.dart';
+import 'package:ezyvalet/screens/provider/billing_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   const AnalyticsScreen({super.key});
@@ -15,16 +17,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     end: DateTime.now(),
   );
 
-  final List<Map<String, String>> tickets = [
-    {
-      'ticketId': 'Xo1XHAbWmXTryymQ1lKe',
-      'carPlate': 'ABCD1234',
-      'mobile': '8708559274',
-      'status': 'Active',
-      'parkedAt': '12:01 PM',
-      'retrievedAt': '-'
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() =>
+        Provider.of<BillingProvider>(context, listen: false).getBillingData());
+  }
 
   Future<void> _pickDateRange() async {
     DateTimeRange? picked = await showDateRangePicker(
@@ -43,6 +41,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<BillingProvider>(context);
+
     final formattedRange =
         '${DateFormat.yMMMd().format(selectedDateRange.start)} - ${DateFormat.yMMMd().format(selectedDateRange.end)}';
 
@@ -53,31 +53,42 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         foregroundColor: AppColors.white,
         elevation: 2,
       ),
-      body: SingleChildScrollView(
+      body: provider.loading
+          ? const Center(child: CircularProgressIndicator())
+          : provider.error != null
+          ? Center(child: Text("Error: ${provider.error}"))
+          : provider.billingData.isEmpty
+          ? const Center(child: Text("No billing data found"))
+          : SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            /// Date picker + Export button
             Row(
               children: [
                 Expanded(
                   child: GestureDetector(
                     onTap: _pickDateRange,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 14),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.grey.shade300),
+                        border: Border.all(
+                            color: Colors.grey.shade300),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.calendar_today_outlined, size: 18),
+                          const Icon(Icons.calendar_today_outlined,
+                              size: 18),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               formattedRange,
-                              style: const TextStyle(fontSize: 14),
+                              style:
+                              const TextStyle(fontSize: 14),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -89,12 +100,16 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                 const SizedBox(width: 12),
                 ElevatedButton.icon(
                   onPressed: () {},
-                  icon: Icon(Icons.download,color: AppColors.white,),
+                  icon: Icon(
+                    Icons.download,
+                    color: AppColors.white,
+                  ),
                   label: const Text("Export"),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:AppColors.highlight,
+                    backgroundColor: AppColors.highlight,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -105,24 +120,46 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
             const SizedBox(height: 28),
 
+            /// Summary cards (dynamic from billing data)
             Row(
               children: [
-                _summaryCard("Total", "1", Icons.directions_car, Colors.blue),
-                _summaryCard("Retrieved", "0", Icons.check_circle, Colors.green),
-                _summaryCard("Incomplete", "1", Icons.hourglass_bottom, Colors.orange),
+                _summaryCard(
+                    "Vendors",
+                    provider.billingData.length.toString(),
+                    Icons.store,
+                    Colors.blue),
+                _summaryCard(
+                    "Pending",
+                    provider.billingData
+                        .where((b) =>
+                    b['payment_status'] == "Pending")
+                        .length
+                        .toString(),
+                    Icons.access_time,
+                    Colors.orange),
+                _summaryCard(
+                    "Paid",
+                    provider.billingData
+                        .where((b) =>
+                    b['payment_status'] == "Paid")
+                        .length
+                        .toString(),
+                    Icons.check_circle,
+                    Colors.green),
               ],
             ),
 
             const SizedBox(height: 32),
 
-            /// Ticket Section
+            /// Billing Section
             Text(
-              "Tickets on ${DateFormat.yMMMMd().format(selectedDateRange.start)}",
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              "Billing Records",
+              style: const TextStyle(
+                  fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
 
-            ...tickets.map(_ticketCard).toList(),
+            ...provider.billingData.map(_billingCard).toList(),
           ],
         ),
       ),
@@ -152,7 +189,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             const SizedBox(height: 6),
             Text(
               count,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                  fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
             Text(
@@ -165,7 +203,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     );
   }
 
-  Widget _ticketCard(Map<String, String> ticket) {
+  Widget _billingCard(Map<String, dynamic> bill) {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
@@ -185,32 +223,28 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Ticket ID: ${ticket['ticketId']}",
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
+            "Vendor: ${bill['vendor_name']}",
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                ticket['carPlate'] ?? '',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              _statusChip(ticket['status'] ?? ''),
-            ],
-          ),
+          Text("Billing Method: ${bill['billing_method']}"),
+          Text("Vehicles Released: ${bill['total_vehicle_released']}"),
+          Text("Monthly Fees: ₹${bill['monthly_subscription_fees']}"),
+          Text("Subtotal: ₹${bill['billing_subtotal']}"),
+          Text("GST Collected: ₹${bill['gst_collected']}"),
+          Text("Previous Dues: ₹${bill['previous_dues']}"),
+          Text("Total with GST: ₹${bill['total_bill_with_gst']}"),
           const SizedBox(height: 6),
-          Text("Mobile: ${ticket['mobile']}"),
-          Text("Parked At: ${ticket['parkedAt']}"),
-          Text("Retrieved At: ${ticket['retrievedAt']}"),
+          _statusChip(bill['payment_status']),
         ],
       ),
     );
   }
 
   Widget _statusChip(String status) {
-    Color bgColor = status == 'Active' ? Colors.deepPurple.shade100 : Colors.grey.shade300;
-    Color textColor = status == 'Active' ? Colors.deepPurple : Colors.black;
+    Color bgColor =
+    status == 'Pending' ? Colors.orange.shade100 : Colors.green.shade100;
+    Color textColor = status == 'Pending' ? Colors.orange : Colors.green;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
