@@ -4,6 +4,7 @@ import 'package:ezyvalet/authintiction/ForgetPasswordScreen.dart';
 import 'package:ezyvalet/authintiction/VendorSignUpScreen.dart';
 import 'package:ezyvalet/authintiction/provider/login_provider.dart';
 import 'package:ezyvalet/screens/HomePage.dart';
+import 'package:ezyvalet/screens/ezy_valet_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../constants/app_colors.dart';
@@ -69,34 +70,36 @@ class _VendorLoginScreenState extends State<VendorLoginScreen> {
       backgroundColor: AppColors.white,
       body: Column(
         children: [
-          // Header Image
-          Container(
-            height: 200,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(AppImages.loginHeader),
-                fit: BoxFit.cover,
-              ),
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(32),
-                bottomRight: Radius.circular(32),
+          Padding(
+            padding: const EdgeInsets.only(top: 30,),
+            child: Container(
+              height: 150,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage(AppImages.loginHeader),
+                  fit: BoxFit.cover,
+                ),
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(32),
+                  bottomRight: Radius.circular(32),
+                ),
               ),
             ),
           ),
 
-          // Form
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Form( // Wrapped with Form
+              padding: const EdgeInsets.all(20),
+              child: Form(
                 key: _formKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Back button
                     GestureDetector(
-                      onTap: () => Navigator.pop(context),
+                      onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context){
+                        return EzyValetScreen();
+                      })),
                       child: Container(
                         decoration: BoxDecoration(
                           color: AppColors.white,
@@ -115,7 +118,6 @@ class _VendorLoginScreenState extends State<VendorLoginScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Title & Subtitle
                     Center(child: Text(AppStrings.appTitle, style: AppTextStyles.titleStyle)),
                     const SizedBox(height: 8),
                     Center(child: Text(AppStrings.vendorLogin, style: AppTextStyles.headingStyle)),

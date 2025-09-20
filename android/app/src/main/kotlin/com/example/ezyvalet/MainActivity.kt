@@ -1,4 +1,4 @@
-package com.example.ezyvalet
+package com.ezyvalet.app
 
 import io.flutter.embedding.android.FlutterActivity
 

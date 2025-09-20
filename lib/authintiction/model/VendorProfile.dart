@@ -28,4 +28,9 @@ class VendorProfile {
       email: json['email'] ?? '',
     );
   }
+
+  @override
+  String toString() {
+    return 'VendorProfile(vendorName: $vendorName, vendorAddress: $vendorAddress, city: $city, state: $state, pinCode: $pinCode, mobileNumber: $mobileNumber, email: $email)';
+  }
 }

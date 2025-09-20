@@ -15,10 +15,10 @@ class StaffProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addStaff(String name) async {
+  Future<void> addStaff(String name, String mobile) async {
     isLoading = true;
     notifyListeners();
-    final success = await _service.addStaff(name);
+    final success = await _service.addStaff(name,mobile);
     if (success) {
       await fetchStaff();
     }
@@ -26,10 +26,10 @@ class StaffProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateStaff(int id, String name) async {
+  Future<void> updateStaff(int id, String name, String mobile) async {
     isLoading = true;
     notifyListeners();
-    final success = await _service.updateStaff(id, name);
+    final success = await _service.updateStaff(id, name, mobile);
     if (success) {
       await fetchStaff();
     }
@@ -43,7 +43,7 @@ class StaffProvider extends ChangeNotifier {
     final success = await _service.deleteStaff(id);
     if (success) {
       staffList.removeWhere((s) => s["id"] == id);
-      await fetchStaff(); 
+      await fetchStaff();
     }
     isLoading = false;
     notifyListeners();

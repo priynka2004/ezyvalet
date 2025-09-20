@@ -23,6 +23,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // 🔹 Yahan listen: true rakho taki provider notify kare to rebuild ho
     final provider = Provider.of<ProfileProvider>(context);
 
     return Scaffold(
@@ -70,7 +71,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: const Text("Delete", style: TextStyle(color: AppColors.white),),
+                      child: const Text(
+                        "Delete",
+                        style: TextStyle(color: AppColors.white),
+                      ),
                       onPressed: () => Navigator.pop(context, true),
                     ),
                   ],
@@ -122,7 +126,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            /// 🔹 Profile Header Card with gradient
+            /// 🔹 Profile Header Card
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -165,8 +169,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           provider.profile?['email'] ?? "N/A",
                           style: TextStyle(
                             fontSize: 15,
-                            color:
-                            AppColors.white.withOpacity(0.9),
+                            color: AppColors.white.withOpacity(0.9),
                           ),
                         ),
                       ],

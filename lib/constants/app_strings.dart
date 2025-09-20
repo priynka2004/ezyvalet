@@ -12,7 +12,7 @@ class AppStrings {
   static const String vendorLogin = "Vendor Login";
   static const String privacyPolicy = "Privacy Policy";
   static const String termsOfService = "Terms of Service";
-  static const String copyright = "© 2024 EzyValet. All rights reserved.";
+  static const String copyright = "© 2025 EzyValet. All rights reserved.";
   static const appTitle = 'EzyValet';
   static const emailLabel = 'Email';
   static const emailHint = 'Enter Your Email';

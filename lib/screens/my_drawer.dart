@@ -425,24 +425,24 @@ class _MyDrawerState extends State<MyDrawer> {
                   ),
                   const Divider(),
                   _sectionLabel('General'),
-                  _placeholderItem(
-                    context,
-                    'About Us',
-                    Icons.info_outline,
-                    url: 'https://ezyvalet.bonanso.com/about/us/',
-                  ),
+                  // _placeholderItem(
+                  //   context,
+                  //   'About Us',
+                  //   Icons.info_outline,
+                  //   url: 'https://ezyvalet.bonanso.com/about/us/',
+                  // ),
                   _placeholderItem(
                     context,
                     'Terms & Conditions',
                     Icons.article_outlined,
                     url: 'https://ezyvalet.bonanso.com/terms/conditions/',
                   ),
-                  _placeholderItem(
-                    context,
-                    'Refund Policy',
-                    Icons.currency_exchange,
-                    url: 'https://ezyvalet.bonanso.com/refund/policies/',
-                  ),
+                  // _placeholderItem(
+                  //   context,
+                  //   'Refund Policy',
+                  //   Icons.currency_exchange,
+                  //   url: 'https://ezyvalet.bonanso.com/refund/policies/',
+                  // ),
                   _placeholderItem(
                     context,
                     'Privacy Policy',

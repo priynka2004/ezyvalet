@@ -26,13 +26,19 @@ class ActiveValetService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return data["count"] ?? 0;
+        if (data is Map<String, dynamic>) {
+          return (data["active_cars_count"] as int?) ?? 0;
+        }
+      } else {
+        print("⚠️ Server Error: ${response.statusCode}");
       }
-    } catch (e) {
-      print("Error fetching active counts: $e");
+    } catch (e, stack) {
+      print("❌ Error fetching active counts: $e");
+      print(stack);
     }
     return null;
   }
+
 
 
   ///*************************************************** Active List API

@@ -17,7 +17,7 @@ class BillingProvider with ChangeNotifier {
     try {
       final token = await TokenService().getAccessToken();
       if (token == null) {
-        error = "No token found";
+        error = "Session expired. Please login again.";
         billingData = [];
       } else {
         billingData = await _service.fetchBillingData(token);

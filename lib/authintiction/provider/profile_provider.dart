@@ -19,19 +19,21 @@ class ProfileProvider with ChangeNotifier {
     try {
       profileList = await _service.getProfiles();
 
-      // agar API list return kare to first element le lo
       if (profileList != null && profileList!.isNotEmpty) {
         profile = Map<String, dynamic>.from(profileList!.first);
         profiles = VendorProfile.fromJson(profile!);
+        debugPrint("Profiles loaded: $profiles");
       } else {
         profile = null;
         profiles = null;
       }
-    } catch (e) {
+    } catch (e, st) {
       error = "Failed to fetch profile: $e";
+      debugPrintStack(stackTrace: st);
     }
     _setLoading(false);
   }
+
 
   /// ✅ GET Single Profile by ID
   Future<void> fetchProfileById(int id) async {
@@ -41,7 +43,7 @@ class ProfileProvider with ChangeNotifier {
       profile = data;
       profiles = VendorProfile.fromJson(data);
     } catch (e) {
-      error = "Failed to fetch profile by ID: $e";
+      error = "$e";
     }
     _setLoading(false);
   }
@@ -50,11 +52,12 @@ class ProfileProvider with ChangeNotifier {
   Future<bool> updateProfile(int id, Map<String, dynamic> body) async {
     _setLoading(true);
     try {
-      final response = await _service.updateProfile(id, body); // id pass
+      final response = await _service.updateProfile(id, body);
       profiles = VendorProfile.fromJson(response);
+      profile = response;
       return true;
     } catch (e) {
-      error = "Failed to update profile: $e";
+      error = "$e";
       return false;
     } finally {
       _setLoading(false);
@@ -70,7 +73,7 @@ class ProfileProvider with ChangeNotifier {
       profile = response;
       return true;
     } catch (e) {
-      error = "Failed to patch profile: $e";
+      error = "$e";
       return false;
     } finally {
       _setLoading(false);
@@ -83,12 +86,12 @@ class ProfileProvider with ChangeNotifier {
     try {
       bool success = await _service.deleteProfile(id);
       if (success) {
-        profile = null;   // single profile clear
-        profileList = null; // agar list hai to clear
+        profile = null;
+        profileList = null;
       }
       return success;
     } catch (e) {
-      error = "Failed to delete profile: $e";
+      error = "$e";
       return false;
     } finally {
       _setLoading(false);

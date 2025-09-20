@@ -1,8 +1,7 @@
-import 'dart:convert';
 import 'package:ezyvalet/authintiction/service/token_service.dart';
 import 'package:ezyvalet/constants/app_colors.dart';
+import 'package:ezyvalet/screens/service/HtmlApiService.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 
 class HtmlFromApiScreen extends StatefulWidget {
@@ -36,8 +35,27 @@ class _HtmlFromApiScreenState extends State<HtmlFromApiScreen> {
       throw Exception("Token not found. Please login again.");
     }
 
-    return ApiService.fetchHtmlContent(widget.url ?? "", token);
+    String? response = await HtmlApiService.fetchHtmlContent(widget.url ?? "", token);
+
+    if (response == null || response.isEmpty) return null;
+
+    response = response.trim();
+
+    if ((response.startsWith("[") && response.endsWith("]")) ||
+        (response.startsWith("{") && response.endsWith("}"))) {
+      response = response.substring(1, response.length - 1);
+    }
+
+    response = response.replaceAll(RegExp(r'"?id"?\s*:\s*"?[\w-]+"?,?'), "");
+
+    response = response.replaceAll("privacy_policy", "");
+    response = response.replaceAll("terms_and_conditions", "");
+
+    response = response.replaceAll(RegExp(r'^"+|"+$'), "");
+
+    return response.trim();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -77,27 +95,3 @@ class _HtmlFromApiScreenState extends State<HtmlFromApiScreen> {
   }
 }
 
-class ApiService {
-  static Future<String?> fetchHtmlContent(String url, String token) async {
-    try {
-      final response = await http.get(
-        Uri.parse(url), // 👈 yaha widget.url ka value aayega
-        headers: {
-          "Authorization": "Bearer $token",
-          "Content-Type": "application/json",
-        },
-      );
-
-      if (response.statusCode == 200) {
-        return utf8.decode(response.bodyBytes); // 👈 unicode safe
-      } else if (response.statusCode == 401) {
-        throw Exception("Unauthorized! Token expired or invalid");
-      } else {
-        throw Exception(
-            "Failed to load content. Status: ${response.statusCode}");
-      }
-    } catch (e) {
-      throw Exception("Error: $e");
-    }
-  }
-}

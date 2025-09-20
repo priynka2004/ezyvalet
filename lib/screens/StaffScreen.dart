@@ -16,6 +16,7 @@ class StaffScreen extends StatefulWidget {
 class _StaffScreenState extends State<StaffScreen> {
   final DateTime selectedDate = DateTime.now();
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _mobileController = TextEditingController();
 
   @override
   void initState() {
@@ -25,8 +26,14 @@ class _StaffScreenState extends State<StaffScreen> {
     });
   }
 
-  void _showStaffDialog(BuildContext context, {int? staffId, String? staffName}) {
+  void _showStaffDialog(
+    BuildContext context, {
+    int? staffId,
+    String? staffName,
+    String? mobile,
+  }) {
     _nameController.text = staffName ?? "";
+    _mobileController.text = mobile ?? "";
 
     showDialog(
       context: context,
@@ -37,45 +44,74 @@ class _StaffScreenState extends State<StaffScreen> {
             const Icon(Icons.people, color: AppColors.highlight),
             const SizedBox(width: 8),
             Text(staffId == null ? "Add Staff" : "Edit Staff",
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                style:
+                    const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
           ],
         ),
-        content: TextField(
-          controller: _nameController,
-          decoration: InputDecoration(
-            labelText: "Staff Name",
-            prefixIcon: const Icon(Icons.person),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: _nameController,
+              decoration: InputDecoration(
+                labelText: "Staff Name",
+                prefixIcon: const Icon(Icons.person),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _mobileController,
+              keyboardType: TextInputType.phone,
+              decoration: InputDecoration(
+                labelText: "Mobile Number",
+                prefixIcon: const Icon(Icons.phone),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
         ),
         actions: [
-          TextButton(
+          OutlinedButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text("Cancel", style: TextStyle(color: Colors.grey)),
+            child: Text("Cancel", style: TextStyle(color: AppColors.dark)),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.highlight,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
             onPressed: () async {
               if (_nameController.text.trim().isEmpty) return;
 
-              final provider = Provider.of<StaffProvider>(context, listen: false);
+              final provider =
+                  Provider.of<StaffProvider>(context, listen: false);
 
-              // Show loading while operation
               provider.isLoading = true;
 
+              if (_nameController.text.trim().isEmpty ||
+                  _mobileController.text.trim().isEmpty) return;
+
               if (staffId == null) {
-                await provider.addStaff(_nameController.text.trim());
+                await provider.addStaff(
+                  _nameController.text.trim(),
+                  _mobileController.text.trim(),
+                );
                 CherryToast.success(
                   title: const Text("Staff Added Successfully"),
                   animationType: AnimationType.fromBottom,
-                  autoDismiss:true,
+                  autoDismiss: true,
                 ).show(context);
               } else {
-                await provider.updateStaff(staffId, _nameController.text.trim());
+                await provider.updateStaff(
+                  staffId,
+                  _nameController.text.trim(),
+                  _mobileController.text.trim(),
+                );
                 CherryToast.info(
                   title: const Text("Staff Updated Successfully"),
                   animationType: AnimationType.fromBottom,
@@ -111,24 +147,50 @@ class _StaffScreenState extends State<StaffScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Consumer<StaffProvider>(
           builder: (context, provider, _) {
-            if (provider.isLoading) return const Center(child: CircularProgressIndicator());
+            if (provider.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
             final staffList = provider.staffList;
-            if (staffList.isEmpty) return const Center(child: Text("No staff available"));
+            if (staffList.isEmpty) {
+              return const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.groups_outlined,
+                      size: 80,
+                      color: Colors.grey,
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      "No staff available",
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              );
+            }
 
-            final availableCount = staffList.where((s) => s["is_active"] == true).length;
+            final availableCount =
+                staffList.where((s) => s["is_active"] == true).length;
 
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Manage Schedule', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                const Text('Manage Schedule',
+                    style:
+                        TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 20),
                 Row(
                   children: [
-                    const Icon(Icons.calendar_today_outlined, color: Colors.grey),
+                    const Icon(Icons.calendar_today_outlined,
+                        color: Colors.grey),
                     const SizedBox(width: 8),
                     Text(_formatDate(selectedDate),
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w500)),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -136,7 +198,8 @@ class _StaffScreenState extends State<StaffScreen> {
                   children: [
                     const Icon(Icons.person, color: AppColors.highlight),
                     const SizedBox(width: 8),
-                    Text('$availableCount valet(s) available on ${selectedDate.day}',
+                    Text(
+                        '$availableCount valet(s) available on ${selectedDate.day}',
                         style: const TextStyle(fontWeight: FontWeight.w600)),
                   ],
                 ),
@@ -148,7 +211,8 @@ class _StaffScreenState extends State<StaffScreen> {
                       final staff = staffList[i];
                       return Container(
                         margin: const EdgeInsets.symmetric(vertical: 8),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 14),
                         decoration: BoxDecoration(
                           color: AppColors.white,
                           borderRadius: BorderRadius.circular(12),
@@ -156,14 +220,19 @@ class _StaffScreenState extends State<StaffScreen> {
                         ),
                         child: Row(
                           children: [
-                            Expanded(child: Text(staff["staff_name"] ?? "Unknown", style: AppTextStyles.bodyText)),
+                            Expanded(
+                                child: Text(staff["staff_name"] ?? "Unknown",
+                                    style: AppTextStyles.bodyText)),
                             Switch(
                               value: staff["is_active"] ?? false,
                               onChanged: (val) async {
                                 provider.isLoading = true;
-                                await provider.toggleAvailability(staff["id"], val);
+                                await provider.toggleAvailability(
+                                    staff["id"], val);
                                 CherryToast.info(
-                                  title: Text(val ? "Marked Active" : "Marked Inactive"),
+                                  title: Text(val
+                                      ? "Marked Active"
+                                      : "Marked Inactive"),
                                   animationType: AnimationType.fromBottom,
                                   autoDismiss: true,
                                 ).show(context);
@@ -179,13 +248,14 @@ class _StaffScreenState extends State<StaffScreen> {
                               ),
                             ),
                             IconButton(
-                              icon: const Icon(Icons.delete_outline, color: Colors.red),
+                              icon: const Icon(Icons.delete_outline,
+                                  color: Colors.red),
                               onPressed: () async {
                                 provider.isLoading = true;
-                                provider.notifyListeners();
                                 await provider.deleteStaff(staff["id"]);
                                 CherryToast.error(
-                                  title: const Text("Staff Deleted Successfully"),
+                                  title:
+                                      const Text("Staff Deleted Successfully"),
                                   animationType: AnimationType.fromBottom,
                                   autoDismiss: true,
                                 ).show(context);
@@ -207,7 +277,8 @@ class _StaffScreenState extends State<StaffScreen> {
         backgroundColor: AppColors.highlight,
         onPressed: () => _showStaffDialog(context),
         icon: const Icon(Icons.add, color: AppColors.white),
-        label: const Text('Add Staff Member', style: AppTextStyles.buttonWhiteText),
+        label: const Text('Add Staff Member',
+            style: AppTextStyles.buttonWhiteText),
       ),
     );
   }

@@ -36,7 +36,7 @@ class _HomePageState extends State<HomePage> {
         },
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.add),
+            icon: Icon(Icons.add_circle_outline),
             label: 'Add Valet',
           ),
           BottomNavigationBarItem(

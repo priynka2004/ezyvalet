@@ -33,22 +33,58 @@ class _VendorSignUpScreenState extends State<VendorSignUpScreen> {
   final _confirmPasswordController = TextEditingController();
 
   Widget _buildTextField(
-    String hintText,
-    IconData icon,
-    TextEditingController controller, {
-    bool obscureText = false,
-    VoidCallback? toggleObscure,
-    TextInputType keyboardType = TextInputType.text, // default
-  }) {
+      String hintText,
+      IconData icon,
+      TextEditingController controller, {
+        bool obscureText = false,
+        VoidCallback? toggleObscure,
+        TextInputType keyboardType = TextInputType.text,
+      }) {
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
-      // 👈 Added here
       validator: (value) {
         if (value == null || value.isEmpty) {
           return "Please enter $hintText";
         }
+
+        // ✅ Specific validations
+        if (hintText == "Phone Number") {
+          if (!RegExp(r'^[0-9]{10}$').hasMatch(value)) {
+            return "Enter valid 10 digit phone number";
+          }
+        }
+
+        if (hintText == "Pin Code") {
+          if (!RegExp(r'^[0-9]{6}$').hasMatch(value)) {
+            return "Enter valid 6 digit pin code";
+          }
+        }
+
+        if (hintText == "Email") {
+          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+              .hasMatch(value)) {
+            return "Enter valid email address";
+          }
+        }
+
+        if (hintText == "Password") {
+          if (value.length < 6) {
+            return "Password must be at least 6 characters";
+          }
+          if (!RegExp(r'^(?=.*[0-9])(?=.*[!@#\$&*~]).{6,}$')
+              .hasMatch(value)) {
+            return "Password must include number & special characters";
+          }
+        }
+
+        if (hintText == "Confirm Password") {
+          if (value != _passwordController.text) {
+            return "Passwords do not match";
+          }
+        }
+
         return null;
       },
       decoration: InputDecoration(
@@ -56,12 +92,12 @@ class _VendorSignUpScreenState extends State<VendorSignUpScreen> {
         prefixIcon: Icon(icon, color: AppColors.highlight),
         suffixIcon: toggleObscure != null
             ? IconButton(
-                icon: Icon(
-                  obscureText ? Icons.visibility_off : Icons.visibility,
-                  color: Colors.black,
-                ),
-                onPressed: toggleObscure,
-              )
+          icon: Icon(
+            obscureText ? Icons.visibility_off : Icons.visibility,
+            color: Colors.black,
+          ),
+          onPressed: toggleObscure,
+        )
             : null,
         filled: true,
         fillColor: const Color(0xFFF0F2F6),
@@ -73,6 +109,7 @@ class _VendorSignUpScreenState extends State<VendorSignUpScreen> {
       ),
     );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -171,13 +208,26 @@ class _VendorSignUpScreenState extends State<VendorSignUpScreen> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () async {
-                          if (_formKey.currentState!.validate() &&
-                              _agreedToPolicy) {
-                            if (_passwordController.text !=
-                                _confirmPasswordController.text) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text("Passwords do not match")));
+                          if (_formKey.currentState!.validate()) {
+                            if (!_agreedToPolicy) {
+                              CherryToast.error(
+                                title: const Text("Please agree to Terms & Privacy Policy"),
+                                displayCloseButton: false,
+                                toastPosition: Position.bottom,
+                                animationDuration: const Duration(milliseconds: 500),
+                                autoDismiss: true,
+                              ).show(context);
+                              return; // 👈 Yaha hi stop kar dena
+                            }
+
+                            if (_passwordController.text != _confirmPasswordController.text) {
+                              CherryToast.error(
+                                title: const Text("Passwords do not match"),
+                                displayCloseButton: false,
+                                toastPosition: Position.bottom,
+                                animationDuration: const Duration(milliseconds: 500),
+                                autoDismiss: true,
+                              ).show(context);
                               return;
                             }
 
@@ -219,6 +269,7 @@ class _VendorSignUpScreenState extends State<VendorSignUpScreen> {
                             }
                           }
                         },
+
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFF4a017f),
                           padding: const EdgeInsets.symmetric(vertical: 16),

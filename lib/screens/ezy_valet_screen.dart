@@ -40,7 +40,7 @@ class EzyValetScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             _buildVendorLoginButton(context),
-            const SizedBox(height: 40),
+            const SizedBox(height: 20),
             _buildFooterLinks(),
             const SizedBox(height: 40),
           ],
@@ -110,21 +110,21 @@ class EzyValetScreen extends StatelessWidget {
                       ),
                       child: Text(AppStrings.loginSignup, style: AppTextStyles.buttonWhiteText),
                     ),
-                    const SizedBox(width: 12),
-                    OutlinedButton(
-                      onPressed: () {},
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        side: const BorderSide(color: Colors.white),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 20, vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                      ),
-                      child: Text(AppStrings.getStarted,
-                          style: AppTextStyles.buttonWhiteText),
-                    ),
+                    // const SizedBox(width: 12),
+                    // OutlinedButton(
+                    //   onPressed: () {},
+                    //   style: OutlinedButton.styleFrom(
+                    //     foregroundColor: Colors.white,
+                    //     side: const BorderSide(color: Colors.white),
+                    //     padding: const EdgeInsets.symmetric(
+                    //         horizontal: 20, vertical: 12),
+                    //     shape: RoundedRectangleBorder(
+                    //       borderRadius: BorderRadius.circular(30),
+                    //     ),
+                    //   ),
+                    //   child: Text(AppStrings.getStarted,
+                    //       style: AppTextStyles.buttonWhiteText),
+                    // ),
                   ],
                 ),
               ],
@@ -264,20 +264,22 @@ class EzyValetScreen extends StatelessWidget {
     return Center(
       child: Column(
         children: [
-          Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 24,
-            runSpacing: 8,
-            children: [
-              Text(AppStrings.privacyPolicy, style: AppTextStyles.footerLink),
-              Text(AppStrings.termsOfService, style: AppTextStyles.footerLink),
-            ],
-          ),
-          const SizedBox(height: 16),
+          // Wrap(
+          //   alignment: WrapAlignment.center,
+          //   spacing: 24,
+          //   runSpacing: 8,
+          //   children: [
+          //     Text(AppStrings.privacyPolicy, style: AppTextStyles.footerLink),
+          //     Text(AppStrings.termsOfService, style: AppTextStyles.footerLink),
+          //   ],
+          // ),
+          // const SizedBox(height: 16),
           Text(AppStrings.copyright,
               style: AppTextStyles.footerLink.copyWith(fontSize: 12)),
         ],
       ),
     );
   }
+
+
 }

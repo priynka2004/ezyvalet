@@ -31,7 +31,7 @@ class StaffService {
     return [];
   }
 
-  Future<bool> addStaff(String name) async {
+  Future<bool> addStaff(String name, String mobile) async {
     final token = await _tokenService.getAccessToken();
     final response = await http.post(
       Uri.parse("$baseUrl/staff/"),
@@ -40,7 +40,9 @@ class StaffService {
         "Authorization": "Bearer $token",
         "Content-Type": "application/json",
       },
-      body: jsonEncode({"staff_name": name}), // ✅ correct field
+      body: jsonEncode({"staff_name": name,
+        "mobile_number": mobile,
+      }),
     );
 
     print("POST Staff Status: ${response.statusCode}");
@@ -49,7 +51,7 @@ class StaffService {
     return response.statusCode == 201;
   }
 
-  Future<bool> updateStaff(int id, String name) async {
+  Future<bool> updateStaff(int id, String name,String mobile) async {
     final token = await _tokenService.getAccessToken();
 
     final response = await http.put(
@@ -58,7 +60,9 @@ class StaffService {
         "Content-Type": "application/json",
         "Authorization": "Bearer $token",
       },
-      body: jsonEncode({"staff_name": name}),
+      body: jsonEncode({"staff_name": name,
+        "mobile_number": mobile,
+      }),
     );
 
     print("PUT Staff Status: ${response.statusCode}");
@@ -66,7 +70,6 @@ class StaffService {
 
     return response.statusCode == 200;
   }
-
 
   Future<bool> deleteStaff(int id) async {
     try {
@@ -118,4 +121,5 @@ class StaffService {
       return false;
     }
   }
+
 }
