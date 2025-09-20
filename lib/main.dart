@@ -26,7 +26,6 @@ void main() async {
   runApp(StitchDataApp(isLoggedIn: isLoggedIn));
 }
 
-
 class StitchDataApp extends StatelessWidget {
   final bool isLoggedIn;
   const StitchDataApp({super.key, required this.isLoggedIn});
